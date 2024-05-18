@@ -1,6 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PessoaController;
+use App\Http\Controllers\UserController;
 
-Route::get('/', [PessoaController::class, 'index']);
+// Route::post('/api/register', [UserController::class, 'register']);
