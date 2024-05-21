@@ -26,38 +26,6 @@ class UserController extends Controller
         return response()->json(['message' => "Verifique sua caixa de entrada de email para finalizar a criação da sua conta."]);
     }
 
-    public function login(Request $request)
-    {
-        $params = $this->validateLogin($request);
-
-        if (!$params['email_verified']) {
-            Mail::to($params['email'])->send(new EmailValidate($this->improvesEncryptionToValidateEmail($params['db_password']), $params['user_id']));
-            throw new HttpResponseException(response()->json(['message' => 'Verifique sua caixa de entrada de email para poder entrar em sua conta'], Response::HTTP_BAD_REQUEST));
-        }
-
-        if (Hash::check($params['input_password'], $params['db_password'])) {
-            $user = User::where('email', $params['email'])->first();
-
-            if (!$token = auth()->attempt(['email' => $params['email'], 'password' => $params['input_password']])) {
-                return response()->json(['message' => 'Credenciais inválidas'], Response::HTTP_BAD_REQUEST);
-            }
-
-            return $this->respondWithToken($token);
-        } else {
-            throw new HttpResponseException(response()->json(['message' => 'Senha incorreta'], Response::HTTP_BAD_REQUEST));
-        }
-    }
-
-
-    protected function respondWithToken($token)
-    {
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' =>  60
-        ]);
-    }
-
     public function emailConfirmation($code, $user_id){
         $user = User::find($user_id);
         if(!$user) throw new HttpResponseException(response()->json(['message' => 'Ocorreu um erro. Tente novamente!'], Response::HTTP_BAD_REQUEST));
@@ -73,24 +41,6 @@ class UserController extends Controller
         } else {
             if(!$user) throw new HttpResponseException(response()->json(['message' => 'Ocorreu um erro. Tente novamente!'], Response::HTTP_BAD_REQUEST));
         }
-    }
-
-    private function validateLogin(Request $request){
-        $email = $request->input('email');
-        $password = $request->input('password');
-
-        if(is_null($email)) throw new HttpResponseException(response()->json(['message' => 'Por favor, preencha o email'], Response::HTTP_BAD_REQUEST));
-        if(!preg_match("/^[a-zA-Z0-9-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/i", $email)) throw new HttpResponseException(response()->json(['message' => 'Email inválido'], Response::HTTP_BAD_REQUEST));
-        if(is_null($password)) throw new HttpResponseException(response()->json(['message' => 'Por favor, preencha a senha'], Response::HTTP_BAD_REQUEST));
-
-        $user = User::select('password', 'email_verified_at', 'id')->where('email', $email)->first();
-        if(!$user) throw new HttpResponseException(response()->json(['message' => 'Esse e-mail ainda não foi cadastrado'], Response::HTTP_BAD_REQUEST));
-
-        return ['email' => $email,
-                'input_password' => $password,
-                'db_password' => $user->password,
-                'email_verified' => $user->email_verified_at ? true : false,
-                'user_id' => $user->id];
     }
 
     private function validateRegister(Request $request){

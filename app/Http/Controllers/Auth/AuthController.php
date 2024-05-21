@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+
 
 class AuthController extends Controller
 {
@@ -16,6 +20,12 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only(['email', 'password']);
+
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (is_null($user->email_verified_at)) {
+            throw new HttpResponseException(response()->json(['message' => 'Verifique sua caixa de entrada de email para poder entrar em sua conta'], Response::HTTP_BAD_REQUEST));
+        }
 
         if (! $token = auth('api')->attempt($credentials)) {
             return response()->json(['error' => 'Não autorizado'], 401);
