@@ -24,7 +24,7 @@ class AuthController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         if (is_null($user->email_verified_at)) {
-            throw new HttpResponseException(response()->json(['message' => 'Verifique sua caixa de entrada de email para poder entrar em sua conta'], Response::HTTP_BAD_REQUEST));
+            throw new HttpResponseException(response()->json(['result' => 'Verifique sua caixa de entrada de email para poder entrar em sua conta'], Response::HTTP_BAD_REQUEST));
         }
 
         if (! $token = auth('api')->attempt($credentials)) {
@@ -37,10 +37,10 @@ class AuthController extends Controller
     public function logout(){
         try {
             $user = auth('api')->user();
-            if(!$user) return response()->json(['message' => 'Você não possui uma sessão ativa.']);
+            if(!$user) return response()->json(['result' => 'Você não possui uma sessão ativa.']);
             
             auth('api')->logout();
-            return response()->json(['message' => 'Sessão encerrada!']);
+            return response()->json(['result' => 'Sessão encerrada!']);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Falha ao encerrar a sessão', 'exception' => $e->getMessage()], 500);
         }
