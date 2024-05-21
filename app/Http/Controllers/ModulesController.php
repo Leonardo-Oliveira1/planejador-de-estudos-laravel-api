@@ -27,8 +27,7 @@ class ModulesController extends Controller
         $id = $request->input('id');
         if(is_null($id)) throw new HttpResponseException(response()->json(['result' => 'O id da matéria é obrigatório.'], Response::HTTP_BAD_REQUEST));
 
-        $moduleValidation = Module::select('id')->where('user_id', auth()->user()['id'])->where('id', $id)->get();
-        if($moduleValidation->isEmpty()) throw new HttpResponseException(response()->json(['result' => 'Não é possível consultar uma matéria que não está relacionada a você.'], Response::HTTP_BAD_REQUEST));
+        $this->validateOwnerModule($id);
 
         $module = Module::select('name', 'created_at', 'updated_at')->where('id', $request->input('id'))->first();
         return response()->json(['result' => $module]);
@@ -44,6 +43,8 @@ class ModulesController extends Controller
         if(is_null($id)) throw new HttpResponseException(response()->json(['result' => 'O id da matéria é obrigatório.'], Response::HTTP_BAD_REQUEST));
         if(is_null($name)) throw new HttpResponseException(response()->json(['result' => 'O novo nome da matéria é obrigatório.'], Response::HTTP_BAD_REQUEST));
 
+        $this->validateOwnerModule($id);
+
         $module = Module::find($id);
         $module->name = $name;
         $module->save();
@@ -55,10 +56,11 @@ class ModulesController extends Controller
         $id = $request->input('id');
         if(is_null($id)) throw new HttpResponseException(response()->json(['result' => 'O id da matéria é obrigatório.'], Response::HTTP_BAD_REQUEST));
 
-        $moduleValidation = Module::select('id')->where('user_id', auth()->user()['id'])->where('id', $id)->get();
-        if($moduleValidation->isEmpty()) throw new HttpResponseException(response()->json(['result' => 'Não é possível apagar uma matéria que não está relacionada a você.'], Response::HTTP_BAD_REQUEST));
+        $this->validateOwnerModule($id);
 
-        $module = Module::find($moduleValidation[0]->id);
+        $module = Module::find($id);
+        if(!$module->subjects->isEmpty()) throw new HttpResponseException(response()->json(['result' => 'Apague todos os assuntos antes de excluir a matéria.'], Response::HTTP_BAD_REQUEST));
+        
         $module->delete();
 
         return response()->json(['result' => 'Matéria apagada com sucesso!']);
@@ -73,4 +75,8 @@ class ModulesController extends Controller
         return ["name" => $name];
     }
 
+    private function validateOwnerModule($id){
+        $moduleValidation = Module::select('id')->where('user_id', auth()->user()['id'])->where('id', $id)->get();
+        if($moduleValidation->isEmpty()) throw new HttpResponseException(response()->json(['result' => 'Não é possível realizar operações com uma matéria que não está relacionada a você.'], Response::HTTP_BAD_REQUEST));
+    }
 }
