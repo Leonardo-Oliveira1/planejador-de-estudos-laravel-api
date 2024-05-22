@@ -16,9 +16,9 @@ class SubjectsController extends Controller
 
         $subject = new Subject;
         $subject->module_id = $params['module_id'];
-        $subject->name = $params['name'];;
-        $subject->priority = $params['priority'];;
-        $subject->estimated_hours = $params['estimated_hours'];;
+        $subject->name = $params['name'];
+        $subject->priority = $params['priority'];
+        $subject->estimated_hours = $params['estimated_hours'];
         $subject->save();
 
         return response()->json(['result' => "Assunto '".$params['name']."' adicionado!"]);
