@@ -28,6 +28,7 @@ Route::group(['middleware' => 'apiJwt'], function () {
     Route::get('/subject/list', [SubjectsController::class, 'list'])->name('listSubjects');
     Route::put('/subject', [SubjectsController::class, 'update'])->name('updateSubject');
     Route::delete('/subject', [SubjectsController::class, 'delete'])->name('deleteSubject');
+    Route::put('/subject/togglefinish', [SubjectsController::class, 'toggleFinish'])->name('toggleFinishSubject');
 
     Route::post('/schedule', [SchedulesController::class, 'create'])->name('createSchedule');
     Route::get('/schedule', [SchedulesController::class, 'get'])->name('getSchedule');

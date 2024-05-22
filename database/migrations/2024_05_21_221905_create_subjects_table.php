@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->integer('priority');
             $table->decimal('estimated_hours', total: 8, places: 2);
+            $table->boolean('isFinished')->default(0);
             $table->timestamps();
 
             $table->foreign('module_id')

@@ -40,7 +40,7 @@ class SubjectsController extends Controller
 
     public function list(){
         $subject = DB::table('subjects')
-        ->select('subjects.id', 'subjects.name', 'subjects.created_at', 'subjects.updated_at')
+        ->select('subjects.id', 'subjects.name', 'modules.name as module', 'subjects.created_at', 'subjects.updated_at')
         ->join('modules', 'subjects.module_id', '=', 'modules.id')
         ->where('modules.user_id', '=', auth()->user()['id'])
         ->get();
@@ -72,6 +72,20 @@ class SubjectsController extends Controller
         $subject->delete();
 
         return response()->json(['result' => 'Assunto apagado com sucesso!']);
+    }
+
+    public function toggleFinish(Request $request){
+        $id = $request->input('id');
+        if(is_null($id)) throw new HttpResponseException(response()->json(['result' => 'O id da matéria é obrigatório.'], Response::HTTP_BAD_REQUEST));
+
+        $this->validateOwnerSubject($id);
+
+        $subject = Subject::find($id);
+
+        $subject->isFinished == 0 ? $subject->isFinished = 1 : $subject->isFinished = 0; 
+        $subject->save();
+
+        return response()->json(['result' => 'Sucesso']);
     }
 
     private function validateSubject(Request $request){
