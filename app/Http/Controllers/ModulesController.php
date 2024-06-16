@@ -12,7 +12,7 @@ class ModulesController extends Controller
     public function create(Request $request){
         $params = $this->validateModule($request);
 
-        $existsModule = Module::select('name')->where('name', $params['name'])->first();
+        $existsModule = Module::select('name')->where('name', $params['name'])->where('user_id', auth()->user()['id'])->first();
         if($existsModule) throw new HttpResponseException(response()->json(['result' => 'Essa matéria já está cadastrada'], Response::HTTP_BAD_REQUEST));
 
         $module = new Module;

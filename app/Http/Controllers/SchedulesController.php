@@ -105,5 +105,15 @@ class SchedulesController extends Controller
         $days = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta', 'sábado'];
         return $days[$number];
     }
+
+    public function getHoursPerDay(){
+        $hoursPerDayArray = DB::table('schedules')
+        ->select(DB::raw('day, TIME_TO_SEC(TIMEDIFF(end, start)) / 3600 as hours_studying'))
+        ->where('user_id', auth()->user()['id'])
+        ->orderBy('day')
+        ->get();
+
+        return $hoursPerDayArray;
+    }
     
 }

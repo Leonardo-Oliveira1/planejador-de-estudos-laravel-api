@@ -8,6 +8,8 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use stdClass;
+date_default_timezone_set('America/Sao_Paulo');
 
 class SubjectsController extends Controller
 {
@@ -127,5 +129,109 @@ class SubjectsController extends Controller
         ->where('subjects.id', '=', $id)
         ->count();
         if($subjectValidation == 0) throw new HttpResponseException(response()->json(['result' => 'Não é possível realizar operações com um assunto que não está relacionado a você.'], Response::HTTP_BAD_REQUEST));
+    }
+
+    public function subjectsOrderedByPriority(){
+        return DB::table('subjects')
+        ->select('subjects.*')
+        ->join('modules', 'subjects.module_id', '=', 'modules.id')
+        ->where('modules.user_id', '=', auth()->user()['id'])
+        ->where('subjects.isFinished', 0)
+        ->orderByDesc('priority')
+        ->get();
+    }
+
+    public function orderByPriority(){
+        $timeSpend = $this->timeToFinishEachSubject();
+
+        //CRIAR VALIDAÇÃO PARA VER SE É DIA DE ESTUDO
+
+        return response()->json(['result' => $timeSpend]);
+    }
+
+    public function weekDaysHoursStartingFromToday(){
+        $scheduleController = new SchedulesController;
+        $weekDaysHours = $scheduleController->getHoursPerDay();
+
+        return array_merge(array_slice($weekDaysHours->toArray(), date('w')), array_slice($weekDaysHours->toArray(), 0, date('w')));
+    }
+
+    private function timeToFinishEachSubject(){
+        $subjectsOrderedByPriority = $this->subjectsOrderedByPriority();
+        $subjectAndDuration = [];
+        
+        $required_days = 0;
+        $currentSubjectIndex = 0;
+        $weekDaysHoursStartingFromToday = $this->weekDaysHoursStartingFromToday();
+        $currentDayIndex = $weekDaysHoursStartingFromToday[0]->day;
+
+        while($currentSubjectIndex <= count($subjectsOrderedByPriority) - 1){
+            $tmp = $required_days;
+            while($currentDayIndex < count($weekDaysHoursStartingFromToday)){
+                $day = $weekDaysHoursStartingFromToday[$currentDayIndex];
+
+                if($currentSubjectIndex >= count($subjectsOrderedByPriority)) $currentSubjectIndex = count($subjectsOrderedByPriority) - 1;
+
+                $currentSubject = $subjectsOrderedByPriority[$currentSubjectIndex];
+    
+                $test2 = $currentSubject->name;
+                $scheduleController = new SchedulesController;
+                $test3 = $scheduleController->convertNumberToDay($day->day);
+                $hours = $day->hours_studying;
+                if ((float) $currentSubject->estimated_hours > 0) {
+                    $currentSubject->estimated_hours -= $day->hours_studying;
+                    $required_days++;
+                    // print_r("$required_days - $test2 ($test3 - $hours): ".(float) $currentSubject->estimated_hours."\n");
+                }
+    
+                if(($weekDaysHoursStartingFromToday[0]->day == $day->day) && ($weekDaysHoursStartingFromToday[0]->hours_studying != 0)){
+                    $required_days--;
+                }
+
+                if ($currentSubject->estimated_hours <= 0) {
+                    
+                    $initial_date = time();
+                    $day_in_seconds = 86400;
+                    
+                    if($currentSubjectIndex == 0){
+                        if(number_format($weekDaysHoursStartingFromToday[0]->hours_studying, 1) == 0.0){
+                            if($tmp == 0) $tmp = 1;
+                            $initial_date = $initial_date + ($tmp * $day_in_seconds);
+                        }
+
+                        $completion_date = $initial_date + (($required_days - 1)* $day_in_seconds);
+                    } else {
+                        $initial_date = $initial_date + ($tmp * $day_in_seconds) + $day_in_seconds;
+                        $completion_date = $initial_date + ($required_days * $day_in_seconds);
+                    }
+
+                    if($required_days == 0) $initial_date = $completion_date;
+
+                    $object = new stdClass();
+                    $object->subject = $currentSubject->name;
+                    $object->required_days = $required_days;
+                    $object->initial_date = date('Y-m-d', $initial_date);
+                    $object->completion_date = date('Y-m-d', $completion_date);
+    
+                    array_push($subjectAndDuration, $object);
+                    
+                    $currentSubjectIndex++;
+                    $currentDayIndex++; // Avança para o próximo dia da semana
+                    if ($currentDayIndex >= count($weekDaysHoursStartingFromToday)) {
+                        $currentDayIndex = 0; // Reinicia a semana
+                    }
+
+                    break;
+                }
+
+                $currentDayIndex++; // Avança para o próximo dia da semana
+                if ($currentDayIndex >= count($weekDaysHoursStartingFromToday)) {
+                    $currentDayIndex = 0; // Reinicia a semana
+                }
+                
+            }
+        }
+
+        return $subjectAndDuration;
     }
 }
