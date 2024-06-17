@@ -173,16 +173,16 @@ class SubjectsController extends Controller
 
                 $currentSubject = $subjectsOrderedByPriority[$currentSubjectIndex];
     
-                /* DEBUG 
-                $test2 = $currentSubject->name;
-                $scheduleController = new SchedulesController;
-                $test3 = $scheduleController->convertNumberToDay($day->day);
-                $hours = $day->hours_studying;
-                */ 
+                
+                // DEBUG
+                // $test2 = $currentSubject->name;
+                // $scheduleController = new SchedulesController;
+                // $test3 = $scheduleController->convertNumberToDay($day->day);
+                // $hours = $day->hours_studying;
                 
                 if ((float) $currentSubject->estimated_hours > 0) {
                     $currentSubject->estimated_hours -= $day->hours_studying;
-                    $required_days++;
+                    $required_days++;      
                     // print_r("$required_days - $test2 ($test3 - $hours): ".(float) $currentSubject->estimated_hours."\n");
                 }
     
@@ -193,13 +193,6 @@ class SubjectsController extends Controller
 
                     if($initial_date_tmp == null){
                         $initial_date = time() + ($tmp * $day_in_seconds) - $day_in_seconds;
-                        
-                        if($currentSubjectIndex == 0){
-                            if(number_format($weekDaysHoursStartingFromToday[0]->hours_studying, 1) == 0.0){
-                                $initial_date = $initial_date + $day_in_seconds;
-                            }
-                        }
-                        
                         $initial_date_tmp = $initial_date; 
                     }
 
