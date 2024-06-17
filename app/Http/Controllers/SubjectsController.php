@@ -161,7 +161,7 @@ class SubjectsController extends Controller
         $required_days = 0;
         $currentSubjectIndex = 0;
         $weekDaysHoursStartingFromToday = $this->weekDaysHoursStartingFromToday();
-        $currentDayIndex = $weekDaysHoursStartingFromToday[0]->day;
+        $currentDayIndex = 0;
 
         $initial_date_tmp = null;
         while($currentSubjectIndex <= count($subjectsOrderedByPriority) - 1){
@@ -173,19 +173,20 @@ class SubjectsController extends Controller
 
                 $currentSubject = $subjectsOrderedByPriority[$currentSubjectIndex];
     
+                /* DEBUG 
                 $test2 = $currentSubject->name;
                 $scheduleController = new SchedulesController;
                 $test3 = $scheduleController->convertNumberToDay($day->day);
                 $hours = $day->hours_studying;
+                */ 
+                
                 if ((float) $currentSubject->estimated_hours > 0) {
                     $currentSubject->estimated_hours -= $day->hours_studying;
                     $required_days++;
                     // print_r("$required_days - $test2 ($test3 - $hours): ".(float) $currentSubject->estimated_hours."\n");
                 }
     
-                if(($weekDaysHoursStartingFromToday[0]->day == $day->day) && ($weekDaysHoursStartingFromToday[0]->hours_studying != 0)){
-                    $required_days--;
-                }
+
 
                 if ($currentSubject->estimated_hours <= 0) {
                     $day_in_seconds = 86400;
@@ -197,20 +198,14 @@ class SubjectsController extends Controller
                             if(number_format($weekDaysHoursStartingFromToday[0]->hours_studying, 1) == 0.0){
                                 $initial_date = $initial_date + $day_in_seconds;
                             }
-
-                            $completion_date = $initial_date + (($required_days - 1) * $day_in_seconds);
                         }
                         
                         $initial_date_tmp = $initial_date; 
                     }
 
                     $days_to_this = $required_days - ($tmp != 1 ? $tmp : 0);
-                    $completion_date = $initial_date_tmp + ($days_to_this * $day_in_seconds);
+                    $completion_date = $initial_date_tmp + ($days_to_this * $day_in_seconds) - $day_in_seconds;
 
-                    if($currentSubjectIndex == 0){
-                        $completion_date = $initial_date + (($required_days - 1) * $day_in_seconds);
-                    }
-                    
                     if($required_days == 0) $initial_date_tmp = $completion_date;
 
                     $object = new stdClass();

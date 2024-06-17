@@ -129,20 +129,20 @@ class SubjectsTest extends TestCase
         $this->setSubjects();
 
         $response = $this->getJson('/api/subject/orderByPriority');
-        $this->assertEquals(5, $response['result'][0]['days_to_this']);
+        $this->assertEquals(4, $response['result'][0]['days_to_this']);
         $this->assertEquals('2024-06-17', $response['result'][0]['initial_date']);
-        $this->assertEquals('2024-06-21', $response['result'][0]['completion_date']);
+        $this->assertEquals('2024-06-20', $response['result'][0]['completion_date']);
 
         $this->assertEquals(28, $response['result'][1]['days_to_this']);
-        $this->assertEquals('2024-06-22', $response['result'][1]['initial_date']);
-        $this->assertEquals('2024-07-20', $response['result'][1]['completion_date']);
+        $this->assertEquals('2024-06-21', $response['result'][1]['initial_date']);
+        $this->assertEquals('2024-07-19', $response['result'][1]['completion_date']);
 
         $this->assertEquals(4, $response['result'][2]['days_to_this']);
-        $this->assertEquals('2024-07-21', $response['result'][2]['initial_date']);
-        $this->assertEquals('2024-07-25', $response['result'][2]['completion_date']);
+        $this->assertEquals('2024-07-20', $response['result'][2]['initial_date']);
+        $this->assertEquals('2024-07-23', $response['result'][2]['completion_date']);
 
         $this->assertEquals(3, $response['result'][3]['days_to_this']);
-        $this->assertEquals('2024-07-26', $response['result'][3]['initial_date']);
+        $this->assertEquals('2024-07-25', $response['result'][3]['initial_date']);
         $this->assertEquals('2024-07-29', $response['result'][3]['completion_date']);
 
 
