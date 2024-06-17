@@ -144,8 +144,6 @@ class SubjectsController extends Controller
     public function orderByPriority(){
         $timeSpend = $this->timeToFinishEachSubject();
 
-        //CRIAR VALIDAÇÃO PARA VER SE É DIA DE ESTUDO
-
         return response()->json(['result' => $timeSpend]);
     }
 
@@ -165,8 +163,9 @@ class SubjectsController extends Controller
         $weekDaysHoursStartingFromToday = $this->weekDaysHoursStartingFromToday();
         $currentDayIndex = $weekDaysHoursStartingFromToday[0]->day;
 
+        $initial_date_tmp = null;
         while($currentSubjectIndex <= count($subjectsOrderedByPriority) - 1){
-            $tmp = $required_days;
+            $tmp = ($required_days > 0) ? $required_days : 1;
             while($currentDayIndex < count($weekDaysHoursStartingFromToday)){
                 $day = $weekDaysHoursStartingFromToday[$currentDayIndex];
 
@@ -189,44 +188,53 @@ class SubjectsController extends Controller
                 }
 
                 if ($currentSubject->estimated_hours <= 0) {
-                    
-                    $initial_date = time();
                     $day_in_seconds = 86400;
-                    
-                    if($currentSubjectIndex == 0){
-                        if(number_format($weekDaysHoursStartingFromToday[0]->hours_studying, 1) == 0.0){
-                            if($tmp == 0) $tmp = 1;
-                            $initial_date = $initial_date + ($tmp * $day_in_seconds);
-                        }
 
-                        $completion_date = $initial_date + (($required_days - 1)* $day_in_seconds);
-                    } else {
-                        $initial_date = $initial_date + ($tmp * $day_in_seconds) + $day_in_seconds;
-                        $completion_date = $initial_date + ($required_days * $day_in_seconds);
+                    if($initial_date_tmp == null){
+                        $initial_date = time() + ($tmp * $day_in_seconds) - $day_in_seconds;
+                        
+                        if($currentSubjectIndex == 0){
+                            if(number_format($weekDaysHoursStartingFromToday[0]->hours_studying, 1) == 0.0){
+                                $initial_date = $initial_date + $day_in_seconds;
+                            }
+
+                            $completion_date = $initial_date + (($required_days - 1) * $day_in_seconds);
+                        }
+                        
+                        $initial_date_tmp = $initial_date; 
                     }
 
-                    if($required_days == 0) $initial_date = $completion_date;
+                    $days_to_this = $required_days - ($tmp != 1 ? $tmp : 0);
+                    $completion_date = $initial_date_tmp + ($days_to_this * $day_in_seconds);
+
+                    if($currentSubjectIndex == 0){
+                        $completion_date = $initial_date + (($required_days - 1) * $day_in_seconds);
+                    }
+                    
+                    if($required_days == 0) $initial_date_tmp = $completion_date;
 
                     $object = new stdClass();
                     $object->subject = $currentSubject->name;
-                    $object->required_days = $required_days;
-                    $object->initial_date = date('Y-m-d', $initial_date);
+                    $object->days_to_this = $days_to_this;
+                    $object->initial_date = date('Y-m-d', $initial_date_tmp);
                     $object->completion_date = date('Y-m-d', $completion_date);
     
+                    $initial_date_tmp = $completion_date + $day_in_seconds;
+
                     array_push($subjectAndDuration, $object);
                     
                     $currentSubjectIndex++;
-                    $currentDayIndex++; // Avança para o próximo dia da semana
+                    $currentDayIndex++;
                     if ($currentDayIndex >= count($weekDaysHoursStartingFromToday)) {
-                        $currentDayIndex = 0; // Reinicia a semana
+                        $currentDayIndex = 0;
                     }
 
                     break;
                 }
 
-                $currentDayIndex++; // Avança para o próximo dia da semana
+                $currentDayIndex++;
                 if ($currentDayIndex >= count($weekDaysHoursStartingFromToday)) {
-                    $currentDayIndex = 0; // Reinicia a semana
+                    $currentDayIndex = 0;
                 }
                 
             }
