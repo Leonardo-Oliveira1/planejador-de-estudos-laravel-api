@@ -42,7 +42,7 @@ class SubjectsController extends Controller
 
     public function list(){
         $subject = DB::table('subjects')
-        ->select('subjects.id', 'subjects.name', 'modules.name as module', 'subjects.created_at', 'subjects.updated_at')
+        ->select('subjects.id', 'subjects.name', 'subjects.priority', 'subjects.estimated_hours', 'subjects.isFinished', 'modules.id as module', 'subjects.created_at', 'subjects.updated_at')
         ->join('modules', 'subjects.module_id', '=', 'modules.id')
         ->where('modules.user_id', '=', auth()->user()['id'])
         ->get();
