@@ -29,7 +29,7 @@ Route::group(['middleware' => 'apiJwt'], function () {
     Route::put('/subject', [SubjectsController::class, 'update'])->name('updateSubject');
     Route::delete('/subject', [SubjectsController::class, 'delete'])->name('deleteSubject');
     Route::put('/subject/togglefinish', [SubjectsController::class, 'toggleFinish'])->name('toggleFinishSubject');
-    Route::get('/subject/orderByPriority', [SubjectsController::class, 'orderByPriority'])->name('orderByPrioritySubject');
+    Route::get('/subject/getCalendar', [SubjectsController::class, 'getCalendar'])->name('getCalendar');
 
     Route::post('/schedule', [SchedulesController::class, 'create'])->name('createSchedule');
     Route::get('/schedule', [SchedulesController::class, 'get'])->name('getSchedule');

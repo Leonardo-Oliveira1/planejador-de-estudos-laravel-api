@@ -133,7 +133,7 @@ class SubjectsController extends Controller
 
     public function subjectsOrderedByPriority(){
         return DB::table('subjects')
-        ->select('subjects.*')
+        ->select('subjects.*', 'modules.color')
         ->join('modules', 'subjects.module_id', '=', 'modules.id')
         ->where('modules.user_id', '=', auth()->user()['id'])
         ->where('subjects.isFinished', 0)
@@ -141,7 +141,7 @@ class SubjectsController extends Controller
         ->get();
     }
 
-    public function orderByPriority(){
+    public function getCalendar(){
         $timeSpend = $this->timeToFinishEachSubject();
 
         return response()->json(['result' => $timeSpend]);
