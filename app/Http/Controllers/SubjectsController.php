@@ -203,6 +203,7 @@ class SubjectsController extends Controller
 
                     $object = new stdClass();
                     $object->subject = $currentSubject->name;
+                    $object->color = $currentSubject->color;
                     $object->days_to_this = $days_to_this;
                     $object->initial_date = date('Y-m-d', $initial_date_tmp);
                     $object->completion_date = date('Y-m-d', $completion_date);
