@@ -133,7 +133,7 @@ class SubjectsController extends Controller
 
     public function subjectsOrderedByPriority(){
         return DB::table('subjects')
-        ->select('subjects.*', 'modules.color')
+        ->select('subjects.*', 'modules.color', 'modules.name as module_name')
         ->join('modules', 'subjects.module_id', '=', 'modules.id')
         ->where('modules.user_id', '=', auth()->user()['id'])
         ->where('subjects.isFinished', 0)
@@ -203,6 +203,7 @@ class SubjectsController extends Controller
 
                     $object = new stdClass();
                     $object->subject = $currentSubject->name;
+                    $object->module = $currentSubject->module_name;
                     $object->color = $currentSubject->color;
                     $object->days_to_this = $days_to_this;
                     $object->initial_date = date('Y-m-d', $initial_date_tmp);
